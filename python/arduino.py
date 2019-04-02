@@ -8,10 +8,7 @@ from PyQt5.QtCore import QThread
 class Arduino:
     def __init__(self, port,consoleLayout):
         self.arduino = serial.Serial(port, 115200, timeout=0.1)
-
         print("Connected to port: " + str(port))
-        self.arduino = serial.Serial(port, 115200, timeout=0.1)
-        # self.arduino.read
         self.thread = ReadArduino(self.arduino, consoleLayout)
         self.thread.start()
 

@@ -11,7 +11,7 @@
 typedef enum STOPPING {
   HARD,
   GLIDE,
-  SLOW,
+  FAST,
 };
 
 typedef enum SWITCH {
@@ -64,13 +64,19 @@ void loop()
 
   if (Serial.available()) {
     String dataset = Serial.readString();
-    Serial.println("python:" + dataset);
+    Serial.println("python: " + dataset);
 
     if (dataset.equals("blink")) {
       digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
     }
     if (dataset.equals("noblink")) {
       digitalWrite(LED_BUILTIN, LOW);   // turn the LED on (HIGH is the voltage level)
+    }
+
+    if(dataset.startsWith("train")){
+      Serial.println(strtok(dataset))
+      
+      
     }
     // Serial.println(dataset);
   }
@@ -113,8 +119,8 @@ void stopTrain(char trainNumber, int stop) {
   if (stop == HARD) {
     data = 0x61;
   }
-  if (stop == SLOW) {
-    data = 0x60;
+  if (stop == FAST) {
+    data = 0x40;
   }
   // Serial.print("startTrainData : ");Serial.println(data);
   assemble_dcc_msg(trainNumber, data);

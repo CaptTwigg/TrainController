@@ -126,7 +126,8 @@ class MainWidget(QWidget):
 
         stopAllTrainsBtn = QPushButton("Emergency Stop All Trains")
         stopAllTrainsBtn.setIcon(QIcon("icons/stop.png"))
-        stopAllTrainsBtn.clicked.connect(lambda: self.sendCommand("EStop"))
+        stopAllTrainsBtn.clicked.connect(
+            lambda: self.arduino.sendCommand("EStop") if self.arduino is not None else None)
 
         trainTopMenu.addWidget(addTrainButton)
         trainTopMenu.addWidget(removeTrainButton)
@@ -139,10 +140,6 @@ class MainWidget(QWidget):
 
         mainHboxLayout.addLayout(commandLayout)
         mainHboxLayout.addLayout(self.consoleLayout)
-
-        # self.timer = QtCore.QTimer(self)
-        # self.timer.setInterval(1000)  # Throw event timeout with an interval of 1000 milliseconds
-        # self.timer.timeout.connect(self.readArduinoSerial)
 
         self.setLayout(mainHboxLayout)
 
@@ -162,56 +159,16 @@ class MainWidget(QWidget):
             self.consoleLayout.console.appendPlainText(str(e))
 
     def setConnection(self, port):
-        print("Connected to port: " + str(port))
-        self.arduino = serial.Serial(port, 115200, timeout=0.1)
-        # self.arduino.read
-        self.thread = ReadArduino(self.arduino, self.consoleLayout)
-        self.thread.start()
-        # self.timer.start()
-
-    def sendCommand(self, command):
-        self.arduino.write(command.encode())
-
-
-class ReadArduino(QThread):
-    sig = QtCore.pyqtSignal(int)
-
-    def __init__(self, arduino, consoleLayout):
-        QThread.__init__(self)
-        self.arduino = arduino
-        self.consoleLayout = consoleLayout
-        self.sig.connect(self.read)
-
-    def __del__(self):
-        self.wait()
-
-    def run(self):
-        while True:
-            time.sleep(.05)
-            if self.arduino.in_waiting > 0:
-                # Emit the signal
-                self.sig.emit(1)
-
-    def read(self):
-
-        response = self.arduino.readline()
-        print("read: " + str(response.decode()))
-        print("inwait: " + str(self.arduino.in_waiting))
-        # if "python" in str(response.decode()):
-        if response:
-            try:
-                self.consoleLayout.console.insertPlainText(str(response.decode()))
-                self.consoleLayout.console.moveCursor(QtGui.QTextCursor.End)
-            except Exception as e:
-                print(e)
-        # self.arduino.flush()
+        self.arduino = Arduino(port, self.consoleLayout)
+        self.trainlist.arduino = self.arduino
 
 
 class TrainList(QListWidget):
     def __init__(self):
         super().__init__()
+        self.arduino = None
 
-        self.addTrain()
+        #self.addTrain()
         self.setStyleSheet('color: black')
         # self.itemClicked.connect(self.addTrain)
 
@@ -220,7 +177,7 @@ class TrainList(QListWidget):
 
     def addTrain(self):
         listWidget = QListWidgetItem()
-        trainWidget = TrainListWidget()
+        trainWidget = TrainListWidget(arduino=self.arduino)
 
         listWidget.setSizeHint(trainWidget.sizeHint())
         self.addItem(listWidget)
@@ -230,11 +187,13 @@ class TrainList(QListWidget):
         print(self.takeItem(self.currentRow()))
 
 
+
+
 class TrainListWidget(QWidget):
-    def __init__(self):
+    def __init__(self, arduino):
         super().__init__()
         self.speed = 0
-        print(self.parent())
+        self.arduino = None
 
         trainSpeedLayout = QVBoxLayout()
 
@@ -266,8 +225,8 @@ class TrainListWidget(QWidget):
 
         sendButton = QPushButton("Send")
         stopButton = QPushButton("stop")
-        sendButton.clicked.connect(lambda: print(f"train start {train.currentText()} {self.speed}"))
-        stopButton.clicked.connect(lambda: print(f"train:{train.currentText()} speed:{0}"))
+        sendButton.clicked.connect(lambda: arduino.sendCommand(f"train start {train.currentText()} {self.speed}"))
+        stopButton.clicked.connect(lambda: arduino.sendCommand(f"train stop {train.currentText()} {0}"))
 
         # Adding layouts
         textButtonLayout.addWidget(trainStatus)
