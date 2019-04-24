@@ -123,10 +123,15 @@ void assemble_dcc_msg(unsigned char a, unsigned char b)
        msg[1].data[0] = a;
        msg[1].data[1] = b;
        msg[1].data[2] = (msg[1].data[0]^msg[1].data[1]);
-       Serial.print("Byte1 : ");
+       Serial.print("Byte1 : Dec: ");
+       Serial.print(msg[1].data[0],DEC); //BIN
+       Serial.print(" Bin: ");
        Serial.println(msg[1].data[0],BIN); //BIN
-       Serial.print("Byte2 : ");
+       Serial.print("Byte2 : Dec: ");
+       Serial.print(msg[1].data[1],DEC); //BIN
+       Serial.print(" Bin: ");
        Serial.println(msg[1].data[1],BIN); //BIN
+
  
    interrupts();
 }

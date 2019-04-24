@@ -7,6 +7,9 @@ from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+
+from ConsoleLayout import ConsoleLayout
+from TrainLayout import TrainList, TrainLayout
 from arduino import Arduino
 
 
@@ -65,11 +68,11 @@ class App(QMainWindow):
         mainMenu = self.menuBar()
         mainMenu.setNativeMenuBar(False)
         fileMenu = mainMenu.addMenu('File')
-        editMenu = mainMenu.addMenu('Edit')
-        viewMenu = mainMenu.addMenu('View')
-        searchMenu = mainMenu.addMenu('Search')
+        # editMenu = mainMenu.addMenu('Edit')
+        # viewMenu = mainMenu.addMenu('View')
+        # searchMenu = mainMenu.addMenu('Search')
         self.ports = mainMenu.addMenu('Ports')
-        helpMenu = mainMenu.addMenu('Help')
+        # helpMenu = mainMenu.addMenu('Help')
 
         exitButton = QAction(QIcon('exit24.png'), 'Exit', self)
         exitButton.setShortcut('Ctrl+Q')
@@ -97,182 +100,20 @@ class MainWidget(QWidget):
     def __init__(self, parent):
         super(MainWidget, self).__init__(parent)
         self.arduino = None
-        self.trainlist = TrainList()
-
-        mainHboxLayout = QHBoxLayout()
-        commandLayout = QVBoxLayout()
-
-        onbutton = QPushButton("ON")
-        offbutton = QPushButton("OFF")
+        self.trainLayout = TrainLayout()
         self.consoleLayout = ConsoleLayout()
 
-        onbutton.clicked.connect(self.onclick)
-        offbutton.clicked.connect(self.offclick)
+        mainHboxLayout = QHBoxLayout()
 
-        trainTopMenu = QHBoxLayout()
-        trainTopMenu.addWidget(QLabel("Trains"))
-
-        addTrainButton = QPushButton()
-        addTrainButton.setMaximumWidth(30)
-        addTrainButton.setFlat(True)
-        addTrainButton.setIcon(QIcon("icons/add.png"))
-        addTrainButton.clicked.connect(self.trainlist.addTrain)
-
-        removeTrainButton = QPushButton()
-        removeTrainButton.setMaximumWidth(30)
-        removeTrainButton.setFlat(True)
-        removeTrainButton.setIcon(QIcon("icons/minus.png"))
-        removeTrainButton.clicked.connect(self.trainlist.removeTrain)
-
-        stopAllTrainsBtn = QPushButton("Emergency Stop All Trains")
-        stopAllTrainsBtn.setIcon(QIcon("icons/stop.png"))
-        stopAllTrainsBtn.clicked.connect(
-            lambda: self.arduino.sendCommand("EStop") if self.arduino is not None else None)
-
-        trainTopMenu.addWidget(addTrainButton)
-        trainTopMenu.addWidget(removeTrainButton)
-        trainTopMenu.addWidget(stopAllTrainsBtn)
-
-        commandLayout.addLayout(trainTopMenu)
-        commandLayout.addWidget(self.trainlist)
-        commandLayout.addWidget(onbutton)
-        commandLayout.addWidget(offbutton)
-
-        mainHboxLayout.addLayout(commandLayout)
+        mainHboxLayout.addLayout(self.trainLayout)
         mainHboxLayout.addLayout(self.consoleLayout)
 
         self.setLayout(mainHboxLayout)
 
-    def onclick(self):
-        print(self.arduino)
-        try:
-            self.arduino.write("blink".encode())
-        except AttributeError as e:
-            self.consoleLayout.console.appendPlainText(str(e))
-
-    def offclick(self):
-        print(self.arduino)
-        print(self.arduino.reset_input_buffer())
-        try:
-            self.arduino.write("noblink".encode())
-        except AttributeError as e:
-            self.consoleLayout.console.appendPlainText(str(e))
-
     def setConnection(self, port):
         self.arduino = Arduino(port, self.consoleLayout)
-        self.trainlist.arduino = self.arduino
-
-
-class TrainList(QListWidget):
-    def __init__(self):
-        super().__init__()
-        self.arduino = None
-
-        #self.addTrain()
-        self.setStyleSheet('color: black')
-        # self.itemClicked.connect(self.addTrain)
-
-    def Clicked(self, item):
-        QMessageBox.information(self, "ListWidget", "You clicked: " + item.text())
-
-    def addTrain(self):
-        listWidget = QListWidgetItem()
-        trainWidget = TrainListWidget(arduino=self.arduino)
-
-        listWidget.setSizeHint(trainWidget.sizeHint())
-        self.addItem(listWidget)
-        self.setItemWidget(listWidget, trainWidget)
-
-    def removeTrain(self):
-        print(self.takeItem(self.currentRow()))
-
-
-
-
-class TrainListWidget(QWidget):
-    def __init__(self, arduino):
-        super().__init__()
-        self.speed = 0
-        self.arduino = None
-
-        trainSpeedLayout = QVBoxLayout()
-
-        train = QComboBox()
-        train.setMinimumWidth(150)
-        train.setMinimumHeight(20)
-        for i in range(50):
-            train.addItem(str(i))
-
-        train.setStyleSheet("QComboBox { combobox-popup: 0; }; color: rgb(255,0,0)")
-
-        slider = QSlider(Qt.Horizontal)
-        slider.setFocusPolicy(Qt.StrongFocus)
-        slider.setTickPosition(QSlider.TicksBothSides)
-        slider.setTickInterval(2)
-        slider.setSingleStep(2)
-        slider.setMinimum(-16)
-        slider.setMaximum(16)
-        slider.valueChanged[int].connect(self.speedvalue)
-
-        textButtonLayout = QVBoxLayout()
-
-        trainStatus = QLabel("Train status: stopped")
-
-        self.widgetText = QLabel("Train speed: 0")
-        self.widgetText.setMinimumWidth(20)
-
-        buttonsLayout = QVBoxLayout()
-
-        sendButton = QPushButton("Send")
-        stopButton = QPushButton("stop")
-        sendButton.clicked.connect(lambda: arduino.sendCommand(f"train start {train.currentText()} {self.speed}"))
-        stopButton.clicked.connect(lambda: arduino.sendCommand(f"train stop {train.currentText()} {0}"))
-
-        # Adding layouts
-        textButtonLayout.addWidget(trainStatus)
-        textButtonLayout.addWidget(self.widgetText)
-        trainSpeedLayout.addWidget(train)
-        trainSpeedLayout.addWidget(slider)
-        buttonsLayout.addWidget(sendButton)
-        buttonsLayout.addWidget(stopButton)
-
-        layout = QHBoxLayout()
-        layout.addLayout(trainSpeedLayout)
-        layout.addSpacing(10)
-        layout.addLayout(textButtonLayout)
-        layout.addSpacing(20)
-        # layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Expanding))
-        layout.addLayout(buttonsLayout)
-
-        # widgetLayout.addStretch(50)
-
-        layout.setSizeConstraint(QLayout.SetFixedSize)
-
-        self.setLayout(layout)
-
-    def speedvalue(self, value=0):
-        if value % 2 > 0:
-            value += 1
-        self.speed = value
-        self.widgetText.setText("Train speed: " + str(self.speed))
-
-
-class ConsoleLayout(QVBoxLayout):
-    def __init__(self):
-        super().__init__()
-        self.title = QLabel("Console")
-        self.console = QPlainTextEdit()
-        self.console.setStyleSheet("color : black")
-        self.console.setDocumentTitle("Console")
-        self.console.setReadOnly(True)
-        self.clearButton = QPushButton("Clear")
-        self.clearButton.clicked.connect(lambda: self.console.clear())
-
-        self.addWidget(self.title)
-        self.addWidget(self.console)
-        btnLay = QHBoxLayout()
-        btnLay.addWidget(self.clearButton)
-        self.addLayout(btnLay, Qt.RightEdge)
+        self.trainLayout.trainList.arduino = self.arduino
+        self.trainLayout.topMenu.arduino = self.arduino
 
 
 def run():

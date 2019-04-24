@@ -1,116 +1,62 @@
-from PyQt5 import QtCore, uic, QtWidgets
+# print(bin(64), bin(63))
+# print((63 & 63) + 128)
+# print(bin(60))
+#
+# print(bin(0b11011 ^ 0b100))
 
-import sys
-
-from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtWidgets import *
-import GUI
-
-
-class App(QDialog):
-
-    def __init__(self):
-        super().__init__()
-
-        self.title = 'PyQt5 layout - pythonspot.com'
-        self.left = 10
-        self.top = 10
-        self.width = 320
-        self.height = 100
-        self.initUI()
-
-    def initUI(self):
-        self.setWindowTitle(self.title)
-
-        self.setGeometry(self.left, self.top, self.width, self.height)
-
-        self.createGridLayout()
-
-        windowLayout = QVBoxLayout()
-        windowLayout.addWidget(self.horizontalGroupBox)
-        self.setLayout(windowLayout)
-
-        self.show()
-
-    def createGridLayout(self):
-        self.horizontalGroupBox = QGroupBox()
-
-        layout = QGridLayout()
-        layout.setSpacing(1)
-        layout.setColumnStretch(1, 1)
-        layout.setColumnStretch(2, 1)
-
-        layout.addWidget(QLabel("Train"), 0, 0)
-        layout.addWidget(QPushButton('2'), 0, 1)
-        layout.addWidget(QPushButton('3'), 0, 2)
-        layout.addWidget(QComboBox(), 1, 0)
-        layout.addWidget(QPushButton('5'), 1, 1)
-        layout.addWidget(QPushButton('6'), 1, 2)
-        # layout.addWidget(QPushButton('7'), 2, 0)
-        layout.addWidget(QLabel("Train speed"), 2, 0)
-        layout.addWidget(QPushButton('9'), 2, 2)
-        layout.addWidget(QSlider(Qt.Horizontal), 3, 0)
-
-        self.horizontalGroupBox.setLayout(layout)
+switches = [252, 244, 222, 242, 250, 249, 241, 221, 243, 251, 224, 223, 234, 233, 231, 232]
+lights = [112, 152, 142, 102, 101, 141, 122, 121, 131, 132, 151, 111, 51, 21, 22, 62, 92, 52, 12, 32, 91, 61, 11, 41,
+          31, 81, 82, 42]
+arduinoList = [[191, 255], [189, 255], [184, 251], [189, 251], [191, 251], [191, 249], [189, 249], [184, 249],[189, 253], [191, 253], [184, 255], [184, 253], [187, 251], [187, 249], [186, 253], [186, 255]]
 
 
-class TrainListWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        trainSpeedLayout = QVBoxLayout()
-        train = QComboBox()
-        train.setMinimumWidth(150)
-        train.setMinimumHeight(20)
-        for i in range(50):
-            train.addItem(str(i))
-
-        train.setStyleSheet("QComboBox { combobox-popup: 0; }; color: rgb(255,0,0)")
-
-        slider = QSlider(Qt.Horizontal)
-        slider.setFocusPolicy(Qt.StrongFocus)
-        slider.setTickPosition(QSlider.TicksBothSides)
-        slider.setTickInterval(2)
-        slider.setSingleStep(2)
-        slider.setMinimum(-16)
-        slider.setMaximum(16)
-        # slider.valueChanged[int].connect(self.speedvalue)
-
-        textButtonLayout = QVBoxLayout()
-
-        trainStatus = QLabel("stopped")
-
-        self.widgetText = QLabel("0")
-        self.widgetText.setMinimumWidth(20)
-
-        buttonsLayout = QVBoxLayout()
-
-        sendButton = QPushButton("Send")
-        stopButton = QPushButton("stop")
-        sendButton.clicked.connect(lambda: print("clicked"))
-
-        # Adding layouts
-        textButtonLayout.addWidget(trainStatus)
-        textButtonLayout.addWidget(self.widgetText)
-        trainSpeedLayout.addWidget(train)
-        trainSpeedLayout.addWidget(slider)
-        buttonsLayout.addWidget(sendButton)
-        buttonsLayout.addWidget(stopButton)
-
-        layout = QHBoxLayout()
-        layout.addLayout(trainSpeedLayout)
-        layout.addLayout(textButtonLayout)
-        layout.addLayout(buttonsLayout)
-
-        # widgetLayout.addStretch(50)
-
-        layout.setSizeConstraint(QLayout.SetFixedSize)
-        self.setFixedWidth(4000)
-        # self.setFixedHeight(300)
-        self.setLayout(layout)
+# arduinoList = [[156, 255, 247], [166, 255, 247], [164, 251, 243], [154, 251, 243], [154, 249, 241], [164, 249, 241],
+#                [159, 251, 243], [159, 249, 241], [161, 253, 245], [161, 255, 247], [166, 253, 245], [156, 253, 245],
+#                [141, 253, 245], [134, 249, 241], [134, 251, 243], [144, 251, 243], [151, 255, 247], [141, 255, 247],
+#                [131, 255, 247], [136, 255, 247], [151, 253, 245], [144, 249, 241], [131, 253, 245], [139, 249, 241],
+#                [136, 253, 245], [149, 249, 241], [149, 251, 243], [139, 251, 243], [128, 143, 135], [128, 159, 151],
+#                [160, 255, 247], [164, 249, 241], [128, 255, 247], [128, 159, 151], [128, 159, 151], [128, 175, 167],
+#                [128, 175, 167], [128, 223, 215], [128, 239, 231], [128, 207, 199], [128, 191, 183], [128, 143, 135],
+#                [128, 143, 135], [128, 207, 199], [128, 175, 167], [128, 159, 151], [128, 159, 151], [128, 191, 183],
+#                [128, 191, 183], [128, 191, 183], [128, 255, 247], [128, 207, 199], [128, 175, 167], [128, 207, 199],
+#                [128, 239, 231], [128, 143, 135]]
 
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = App()
-    sys.exit(app.exec_())
+def fun(addr, com):
+    addr = (int((addr / 4)))
+    print(bin(0b10 << 6 ^ addr))
+    return addr
+
+
+print(len(lights))
+print(len(arduinoList))
+
+for i, s in enumerate(switches):
+    addr = (int((s / 4) + 1))
+    # print(addr)
+    dd = (s % 4) - 1
+    if dd < 0:
+        addr -= 1
+        dd = 3
+    addr = 0b10 << 6 ^ addr
+    data = (0b1111_1 << 2 ^ dd) << 1 ^ 1
+    data2 = (0b1111_0 << 2 ^ dd) << 1 ^ 1
+    # print(bin(data))
+    # print(addr, arduinoList[i][0], arduinoList[i][0] == addr)
+    print(data, arduinoList[i][1], arduinoList[i][1] == data)
+    # print(data2, arduinoList[i][2], arduinoList[i][2] == data2)
+    # print(s)
+
+print("fun")
+
+print(fun(252, 1))
+print(bin(0b10 << 6 ^ 63))
+
+print(bin((int(252 / 4) + 1 & 0b111111) + 128))
+
+print()
+bit = 0b01011_1101
+print(bin(bit))
+bit = (bit & 0b11 << 4) >> 4
+
+print(bin(bit))
